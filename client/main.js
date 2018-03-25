@@ -3,20 +3,46 @@ import { ReactiveVar } from 'meteor/reactive-var';
 
 import './main.html';
 
-Template.hello.onCreated(function helloOnCreated() {
-  // counter starts at 0
-  this.counter = new ReactiveVar(0);
+Template.login.events({
+	'submit #login': function(event){
+		event.preventDefault();
+		var usrname = event.target.name.value;
+		var usrpwd = event.target.pwd.value;
+		console.log("usrname:" + usrname + " password:" + usrpwd);
+
+		if(usrname == "company"){
+			Router.go('/dashboardc'); 
+		}
+
+	}
 });
 
-Template.hello.helpers({
-  counter() {
-    return Template.instance().counter.get();
-  },
+
+Template.company.events({
+	'click #new_request': function () {
+		Router.go('/request'); 
+	}
 });
 
-Template.hello.events({
-  'click button'(event, instance) {
-    // increment the counter when button is clicked
-    instance.counter.set(instance.counter.get() + 1);
-  },
+Template.request.events({
+	'click .leave-button': function () {
+		Router.go('/dashboardc'); 
+	},
+
+	'change #rd_free': function(){
+		$('.milestone').addClass("hide");
+	},
+
+	'change #rd_apvl': function(){
+		$('.milestone').addClass("hide");
+	},
+
+	'change #rd_mlst': function(){
+		$('.milestone').removeClass("hide");
+	},
+
+	'submit form': function(){
+		
+	}
+
 });
