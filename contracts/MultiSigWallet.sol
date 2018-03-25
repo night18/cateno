@@ -22,14 +22,14 @@ contract MultiSigWallet {
     /*
      *  Constants
      */
-    uint constant public MAX_SUPERVISOR_COUNT = 50;
+    uint constant private MAX_SUPERVISOR_COUNT = 50;
 
     /*
      *  Storage
      */
-    mapping (uint => Transaction) public transactions;
-    mapping (uint => mapping (address => bool)) public confirmations;
-    mapping (address => bool) public isSupervisor;
+    mapping (uint => Transaction) private transactions;
+    mapping (uint => mapping (address => bool)) private confirmations;
+    mapping (address => bool) private isSupervisor;
     address private executor;
     address[] private supervisors;
     uint private required;
