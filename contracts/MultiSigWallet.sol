@@ -1,8 +1,8 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
 /*
  * @title Supervised Wallet - investor can supervise and authorize how company use their money
- *
+ * @author Chun-Wei Chiang - <warrior.sp@gmail.com>
  */
 contract MultiSigWallet {
 
@@ -51,8 +51,9 @@ contract MultiSigWallet {
         _;
     }
 
-    modifier isExecutor(sender){
-        require(sender == executor);
+    modifier isExecutor(address _sender) {
+        require(_sender == executor);
+        _;
     }
 
     modifier supervisorDoesNotExist(address supervisor) {
@@ -100,10 +101,11 @@ contract MultiSigWallet {
 
     /// @dev Fallback function allows to deposit ether.
     function()
+        public
         payable
     {
         if (msg.value > 0)
-            Deposit(msg.sender, msg.value);
+            emit Deposit(msg.sender, msg.value);
     }
 
     /*
@@ -129,7 +131,7 @@ contract MultiSigWallet {
     }
 
     /// @dev Allows to add a new supervisor. Transaction has to be sent by wallet.
-    /// @param _supervisors Address of new supervisor.
+    /// @param _supervisor Address of new supervisor.
     function addSupervisor(address _supervisor)
         public
         onlyWallet
@@ -139,7 +141,7 @@ contract MultiSigWallet {
     {
         isSupervisor[_supervisor] = true;
         supervisors.push(_supervisor);
-        SupervisorAddition(_supervisor);
+        emit SupervisorAddition(_supervisor);
     }
 
     /// @dev Allows to remove an supervisor. Transaction has to be sent by wallet.
@@ -161,7 +163,7 @@ contract MultiSigWallet {
         if (required > supervisors.length){
             changeRequirement(supervisors.length);
         }
-        SupervisorRemoval(_supervisor);
+        emit SupervisorRemoval(_supervisor);
     }
 
     /// @dev Allows to replace an supervisor with a new supervisor. Transaction has to be sent by wallet and the new supervisort cannot be null.
@@ -181,8 +183,8 @@ contract MultiSigWallet {
             }
         isSupervisor[_supervisor] = false;
         isSupervisor[_newSupervisor] = true;
-        SupervisorRemoval(_supervisor);
-        SupervisorAddition(_newSupervisor);
+        emit SupervisorRemoval(_supervisor);
+        emit SupervisorAddition(_newSupervisor);
     }
 
     /// @dev Allows to change the number of required confirmations. Transaction has to be sent by wallet.
@@ -193,7 +195,7 @@ contract MultiSigWallet {
         validRequirement(supervisors.length, _required)
     {
         required = _required;
-        RequirementChange(_required);
+        emit RequirementChange(_required);
     }
 
     /// @dev Allows the executor to ask the request to submit a transaction.
@@ -220,7 +222,7 @@ contract MultiSigWallet {
         notConfirmed(transactionId, msg.sender)
     {
         confirmations[transactionId][msg.sender] = true;
-        Confirmation(msg.sender, transactionId);
+        emit Confirmation(msg.sender, transactionId);
         executeTransaction(transactionId);
     }
 
@@ -233,7 +235,7 @@ contract MultiSigWallet {
         notExecuted(transactionId)
     {
         confirmations[transactionId][msg.sender] = false;
-        Revocation(msg.sender, transactionId);
+        emit Revocation(msg.sender, transactionId);
     }
 
     /// @dev Allows supervisor to execute a confirmed transaction.
@@ -248,9 +250,9 @@ contract MultiSigWallet {
             Transaction storage txn = transactions[transactionId];
             txn.executed = true;
             if (external_call(txn.destination, txn.value, txn.data.length, txn.data))
-                Execution(transactionId);
+                emit Execution(transactionId);
             else {
-                ExecutionFailure(transactionId);
+                emit ExecutionFailure(transactionId);
                 txn.executed = false;
             }
         }
@@ -321,7 +323,7 @@ contract MultiSigWallet {
             executed: false
         });
         transactionCount += 1;
-        Submission(transactionId);
+        emit Submission(transactionId);
     }
 
     /*
@@ -374,7 +376,7 @@ contract MultiSigWallet {
     function getExecutor()
         public
         constant
-        return (address)
+        returns (address)
     {
         return executor;
     }
