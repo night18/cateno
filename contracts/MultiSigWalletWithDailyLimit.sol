@@ -1,10 +1,13 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
+
 import "./MultiSigWallet.sol";
+import "./Milestone.sol";
 
-
-/// @title Multisignature wallet with daily limit - Allows an owner to withdraw a daily limit without multisig.
-/// @author Stefan George - <stefan.george@consensys.net>
-contract MultiSigWalletWithDailyLimit is MultiSigWallet {
+/*
+ * @title Multisignature wallet with daily limit - Allows executor to withdraw a daily limit without multisig.
+ * @author Chun-Wei Chiang - <warrior.sp@gmail.com>
+ */
+contract MultiSigWalletWithDailyLimit is MultiSigWallet, Milestone {
 
     /*
      *  Events
@@ -17,17 +20,20 @@ contract MultiSigWalletWithDailyLimit is MultiSigWallet {
     uint public dailyLimit;
     uint public lastDay;
     uint public spentToday;
+    uint[] private hasmilestone;
+    mapping (uint => uint) public milestone_target;
 
     /*
      * Public functions
+     * @dev Contract constructor sets initial owners, required number of confirmations and daily withdraw limit.
+     * @param _owners List of initial owners.
+     * @param _required Number of required confirmations.
+     * @param _supervisors List of initial supervisors.
+     * @param _dailyLimit Amount in "wei", which can be withdrawn without confirmations on a daily basis.
      */
-    /// @dev Contract constructor sets initial owners, required number of confirmations and daily withdraw limit.
-    /// @param _owners List of initial owners.
-    /// @param _required Number of required confirmations.
-    /// @param _dailyLimit Amount in wei, which can be withdrawn without confirmations on a daily basis.
-    function MultiSigWalletWithDailyLimit(address[] _owners, uint _required, uint _dailyLimit)
+    function MultiSigWalletWithDailyLimit(address _executor, address[] _supervisors, uint _required, uint _dailyLimit)
         public
-        MultiSigWallet(_owners, _required)
+        MultiSigWallet(_executor, _supervisors, _required)
     {
         dailyLimit = _dailyLimit;
     }
@@ -39,27 +45,26 @@ contract MultiSigWalletWithDailyLimit is MultiSigWallet {
         onlyWallet
     {
         dailyLimit = _dailyLimit;
-        DailyLimitChange(_dailyLimit);
+        emit DailyLimitChange(_dailyLimit);
     }
 
     /// @dev Allows anyone to execute a confirmed transaction or ether withdraws until daily limit is reached.
     /// @param transactionId Transaction ID.
-    function executeTransaction(uint transactionId)
+    function executeDailyTransaction(uint transactionId)
         public
-        ownerExists(msg.sender)
-        confirmed(transactionId, msg.sender)
+        isExecutor(msg.sender)
         notExecuted(transactionId)
     {
         Transaction storage txn = transactions[transactionId];
         bool _confirmed = isConfirmed(transactionId);
-        if (_confirmed || txn.data.length == 0 && isUnderLimit(txn.value)) {
+        if (_confirmed || isUnderLimit(txn.value)) {
             txn.executed = true;
             if (!_confirmed)
                 spentToday += txn.value;
-            if (txn.destination.call.value(txn.value)(txn.data))
-                Execution(transactionId);
+            if (txn.destination.send(txn.value))
+                emit Execution(transactionId);
             else {
-                ExecutionFailure(transactionId);
+                emit ExecutionFailure(transactionId);
                 txn.executed = false;
                 if (!_confirmed)
                     spentToday -= txn.value;
@@ -67,6 +72,42 @@ contract MultiSigWalletWithDailyLimit is MultiSigWallet {
         }
     }
 
+    /// @dev Allows the executor to ask the request to submit a transaction.
+    /// @param destination Transaction target address.
+    /// @param value Transaction ether value.
+    /// @param data Transaction data payload.
+    /// @param reason The reason for the transaction.
+    /// @param target The milestone target.
+    /// @return Returns transaction ID.
+    function settingMilestone(address destination, uint value, bytes data, bytes32 reason, uint target)
+        public
+        isExecutor(msg.sender)
+        returns (uint transactionId)
+    {
+        transactionId = submitTransaction(destination, value,data, reason);
+        hasmilestone.push(transactionId);
+        milestone_target[transactionId] = target;
+    }
+
+
+    function checkMilestone()
+        public
+    {
+        for(uint _Id = 0 ; _Id < hasmilestone.length; _Id++){
+            if(EURGBP >= milestone_target[hasmilestone[_Id]]){
+                Transaction storage txn = transactions[hasmilestone[_Id]];
+                bool _confirmed = isConfirmed(_Id);
+                txn.executed = true;
+                if (txn.destination.send(txn.value))
+                    emit Execution(hasmilestone[_Id]);
+                else {
+                    //emit ExecutionFailure(_Id);
+                    txn.executed = false;
+                }
+            }
+        }
+    }
+    
     /*
      * Internal functions
      */

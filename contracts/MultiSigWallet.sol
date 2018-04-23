@@ -1,10 +1,11 @@
 pragma solidity ^0.4.18;
 
+
 /*
  * @title Supervised Wallet - investor can supervise and authorize how company use their money
  * @author Chun-Wei Chiang - <warrior.sp@gmail.com>
  */
-contract MultiSigWallet {
+contract MultiSigWallet{
 
     /*
      *  Events
@@ -27,7 +28,7 @@ contract MultiSigWallet {
     /*
      *  Storage
      */
-    mapping (uint => Transaction) private transactions;
+    mapping (uint => Transaction) public transactions;
     mapping (uint => mapping (address => bool)) private confirmations;
     mapping (address => bool) private isSupervisor;
     address private executor;
@@ -325,6 +326,8 @@ contract MultiSigWallet {
         transactionCount += 1;
         emit Submission(transactionId);
     }
+
+
 
     /*
      * Web3 call functions

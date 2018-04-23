@@ -86,6 +86,21 @@ p{
     display: inline-block;
 }
 
+.update-button{
+    border: 1px solid #D19019;
+    padding: 13px 22px;
+    line-height: 0px;
+    border-radius: 3px;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #D19019;
+    font-weight: 400;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #ffffff;
+    letter-spacing: 1px;
+    display: inline-block;
+}
+
 .leave-button{
     border: 1px solid #97a6a8;
     padding: 13px 22px;
@@ -120,7 +135,7 @@ p{
 
 .t_content{
 	height: 563px;
-	padding: 20px 6px 8px 6px;
+	padding: 20px 10px 8px 10px;
 	background-color: #e5f4f6;
 	border: 1px solid #32abb8;
 	font-size: 16px;
