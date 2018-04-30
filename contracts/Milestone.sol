@@ -28,7 +28,7 @@ import "github.com/oraclize/ethereum-api/oraclizeAPI.sol";
             LogNewOraclizeQuery("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
         } else {
             LogNewOraclizeQuery("Oraclize query was sent, standing by for the answer..");
-            oraclize_query("URL", "json(http://ab84845d.ngrok.io/api/eq).target");
+            oraclize_query("URL", "json(http://b2b41abc.ngrok.io/api/rr).target");
         }
     }
 

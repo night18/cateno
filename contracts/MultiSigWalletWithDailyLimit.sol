@@ -95,16 +95,22 @@ contract MultiSigWalletWithDailyLimit is MultiSigWallet, Milestone {
     {
         for(uint _Id = 0 ; _Id < hasmilestone.length; _Id++){
             if(EURGBP >= milestone_target[hasmilestone[_Id]]){
-                Transaction storage txn = transactions[hasmilestone[_Id]];
-                bool _confirmed = isConfirmed(_Id);
-                txn.executed = true;
-                if (txn.destination.send(txn.value))
-                    emit Execution(hasmilestone[_Id]);
-                else {
-                    //emit ExecutionFailure(_Id);
-                    txn.executed = false;
-                }
+               executeMilestoneTransaction(hasmilestone[_Id]);
             }
+        }
+    }
+    
+    function executeMilestoneTransaction(uint transactionId)
+        private
+        
+    {
+        Transaction storage txn = transactions[transactionId];
+        txn.executed = true;
+        if (txn.destination.send(txn.value))
+            emit Execution(transactionId);
+        else {
+            //emit ExecutionFailure(_Id);
+            txn.executed = false;
         }
     }
     
