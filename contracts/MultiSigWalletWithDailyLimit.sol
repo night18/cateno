@@ -33,11 +33,12 @@ contract MultiSigWalletWithDailyLimit is MultiSigWallet, Milestone {
      */
     function MultiSigWalletWithDailyLimit(address _executor, address[] _supervisors, uint _required, uint _dailyLimit)
         public
+        payable
         MultiSigWallet(_executor, _supervisors, _required)
     {
         dailyLimit = _dailyLimit;
     }
-
+    
     /// @dev Allows to change the daily limit. Transaction has to be sent by wallet.
     /// @param _dailyLimit Amount in wei.
     function changeDailyLimit(uint _dailyLimit)

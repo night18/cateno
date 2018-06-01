@@ -119,8 +119,10 @@ contract MultiSigWallet{
      */
     function MultiSigWallet(address _executor, address[] _supervisors, uint _required)
         public
+        payable
         notNull(_executor)
         validRequirement(_supervisors.length, _required)
+        
     {
         for (uint i=0; i<_supervisors.length; i++) {
             require(!isSupervisor[_supervisors[i]] && _supervisors[i] != 0);

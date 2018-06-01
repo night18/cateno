@@ -6,7 +6,8 @@ let web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 web3.eth.net.isListening().then(console.log);
 Future = Npm.require('fibers/future')	
 
-
+var account0 = "0xa9f64fe1c99c1bb316eae97be90ce35db2d105bc";
+var account1 = "0xfa61f9280de613a4b5b91c385739fc6a54d0f389";
 
 
 Meteor.startup(() => {
@@ -32,8 +33,8 @@ Meteor.startup(() => {
 			}
 		},
 		'deployWallet':function(){
-			let _executor = "0x02709c3a27c15193a439d0d54389711aba438f2b";
-			let _supervisors = ["0x1cdbd925bcb0b76b49e5263c7b7d116c1c94636f"];
+			let _executor = account0;
+			let _supervisors = account1;
 			let _required = 1;
 			let _dailyLimit = web3.utils.toWei("20", "ether");
  			let multisigwalletwithdailylimitContract = new web3.eth.Contract(multisigDailyLimitABI.abi);
@@ -68,7 +69,7 @@ Meteor.startup(() => {
 		'submitTransaction': function(amount, receiver, reason ){
 			var fut = new Future();
 			var amountInWei = web3.utils.toWei(amount, "ether"); 
-			var sender = "0x02709c3a27c15193a439d0d54389711aba438f2b";
+			var sender = account0;
 			var dailyWallet = new web3.eth.Contract(multisigDailyLimitABI.abi, multisigDailyLimitABI.address);
 
 			dailyWallet.methods.submitTransaction(receiver, amountInWei, web3.utils.asciiToHex(""), web3.utils.asciiToHex(reason))
@@ -95,7 +96,7 @@ Meteor.startup(() => {
 		'settingMilestone': function(amount, receiver, reason, milestone){
 			var fut = new Future();
 			var amountInWei = web3.utils.toWei(amount, "ether"); 
-			var sender = "0x02709c3a27c15193a439d0d54389711aba438f2b";
+			var sender = account0;
 			var dailyWallet = new web3.eth.Contract(multisigDailyLimitABI.abi, multisigDailyLimitABI.address);
 			console.log(Number(milestone))
 
@@ -122,7 +123,7 @@ Meteor.startup(() => {
 
 		'updatePrice': function(){
 			var fut = new Future();
-			var sender = "0x02709c3a27c15193a439d0d54389711aba438f2b";
+			var sender = account0;
 			var dailyWallet = new web3.eth.Contract(multisigDailyLimitABI.abi, multisigDailyLimitABI.address);
 
 			dailyWallet.methods.updatePrice()
@@ -138,6 +139,7 @@ Meteor.startup(() => {
 			})
 			.on('confirmation', function(confirmationNumber, receipt){ console.log('confirmation No: '+ confirmationNumber+ " "+ receipt) })
 			.then(function(transaction){
+				console.log("!!!");
 				dailyWallet.methods.checkMilestone()
 				.send({
 					from: sender,
@@ -161,7 +163,7 @@ Meteor.startup(() => {
 		'requestWithOutLimit': function(amount, receiver, reason ){
 			var fut = new Future();
 			var amountInWei = web3.utils.toWei(amount, "ether"); 
-			var sender = "0x02709c3a27c15193a439d0d54389711aba438f2b";
+			var sender = account0;
 			var dailyWallet = new web3.eth.Contract(multisigDailyLimitABI.abi, multisigDailyLimitABI.address);
 			
 			dailyWallet.methods.submitTransaction(receiver, amountInWei, web3.utils.asciiToHex(""), web3.utils.asciiToHex(reason))
@@ -202,7 +204,7 @@ Meteor.startup(() => {
 
 		'confirmTransaction' : function(transactionId){
 			var fut = new Future();
-			var sender = "0x1cdbd925bcb0b76b49e5263c7b7d116c1c94636f";
+			var sender = account1;
 			var dailyWallet = new web3.eth.Contract(multisigDailyLimitABI.abi, multisigDailyLimitABI.address);
 			dailyWallet.methods.confirmTransaction(transactionId)
 			.send({
@@ -224,9 +226,11 @@ Meteor.startup(() => {
 		'getTransNumber': function(){
 			var fut = new Future();
 			var dailyWallet = new web3.eth.Contract(multisigDailyLimitABI.abi, multisigDailyLimitABI.address);
-			
+			var sender = account0;
 			// dailyWallet.methods.transactions
-			dailyWallet.methods.getTransactionCount(true, true).call()
+			dailyWallet.methods.getTransactionCount(true, true).call({
+				from: sender,
+			})
 			.then(function(trans_num){
 				console.log(trans_num);
 				if(trans_num && trans_num != 0){
@@ -242,6 +246,7 @@ Meteor.startup(() => {
 
 		'showHistory': function(trans_num){
 			var indexArray = [];
+			var sender = account1;
 			var dailyWallet = new web3.eth.Contract(multisigDailyLimitABI.abi, multisigDailyLimitABI.address);
 			for(var i = 0 ; i < trans_num ; i++){
 				
@@ -252,7 +257,7 @@ Meteor.startup(() => {
 				var fut = new Future();
 				var onComplete = fut.resolver();
 
-				dailyWallet.methods.transactions(item).call({}, function(err,result){
+				dailyWallet.methods.transactions(item).call({from: sender}, function(err,result){
 					if(err){
 						console.error(err);
 					}else{
