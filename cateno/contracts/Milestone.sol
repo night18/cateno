@@ -14,7 +14,7 @@ contract Milestone is usingOraclize {
 
     function Milestone() payable {
         LogConstructorInitiated("Constructor was initiated. Call 'updatePrice()' to send the Oraclize Query.");
-        OAR = OraclizeAddrResolverI(0xAFb707Fe5900F0439324523EC630D6553C8A1318);
+        OAR = OraclizeAddrResolverI(0xbd9beDb2c40AA5D769cBe3569a31fc012b6fCd3B);
 
     }
 
@@ -23,13 +23,14 @@ contract Milestone is usingOraclize {
         EURGBP = parseInt(result);
         LogPriceUpdated(result);
     }
+    
 
     function updatePrice() payable {
         if (oraclize_getPrice("URL") > this.balance) {
             LogNewOraclizeQuery("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
         } else {
             LogNewOraclizeQuery("Oraclize query was sent, standing by for the answer..");
-            oraclize_query("URL", "json(http://2dff6440.ngrok.io/api/qq).target");
+            oraclize_query("URL", "json(http://898659f8.ngrok.io/api/qq).target");
         }
     }
 }
